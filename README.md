@@ -43,7 +43,7 @@ $$\text{Score} = \Delta X + \text{Absolute Drop}$$
 
 Three analytical views were built to break down Messi's passing:
 
-**1. Recipient Volume Chart**
+**1. Pass Recipient Volume Chart**
 A bar chart showing how frequently Messi passed to each teammate. Dani Alves came out as the primary outlet, which lines up with Barcelona's right-side overload pattern that season.
 
 ![Distribution Hub](assets/03_distribution_hub.png)
@@ -53,7 +53,7 @@ A 2D kernel density estimate showing where on the pitch Messi was releasing pass
 
 ![Passing Intensity Map](assets/02_passing_intensity_map.png)
 
-**3. Spatial Vector Map**
+**3. Passing Vector Map**
 All 67 completed passes plotted as vectors on a pitch. The top 5 scoring passes are highlighted in orange — everything else is faded. This makes the game-breaking passes immediately visible without any subjectivity.
 
 ![Passing Vector Map](assets/01_passing_vector_map.png)
