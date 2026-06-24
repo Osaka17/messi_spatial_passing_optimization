@@ -1,170 +1,88 @@
-# The Geometry of Genius: Tracking Targeted Passing Progression and Density
+# La Liga Passing Efficiency — Spatial Analysis Pipeline
 
-Modeling Lionel Messi's distributions using a 2D density heatmap for operational intensity and a custom Euclidean coordinate optimization heuristic to track goal-center passing targets.
-
-This repository implements a self-contained, vectorized feature engineering pipeline that transforms raw coordinate event feeds from StatsBomb open data into an optimized, two-dimensional coordinate-optimization heuristic to evaluate and rank the geometric efficiency of Lionel Messi's distributions against Villarreal during the 2014/15 La Liga season.
+Analyzing Lionel Messi's passing during Barcelona vs Villarreal (2014/15 La Liga) using StatsBomb open data. The goal was to go beyond basic pass counts and build a scoring system that identifies which passes actually threatened the opponent's goal.
 
 ---
 
-## Project Motivation & Origin Story
+## What This Project Does
 
-This project sits at the intersection of a lifelong passion for football and a deep curiosity about data science and mathematical modeling. Spending years diving into data-driven simulation games like *Football Manager* made it clear how critical performance metrics and match analytics are to understanding the modern game. That fascination with tactical insights is exactly what drove me to explore the field of data science and statistics — I wanted to pull back the curtain and learn how analysts transform raw match tracking feeds into high-level, intuitive visual intelligence.
+Most passing stats just count volume or measure how far forward a pass went. I wanted to build something more specific — a way to score each pass based on two things at once:
 
-As my first major data science project, I wanted to reverse-engineer a match from Lionel Messi's absolute prime era at FC Barcelona. Rather than relying on standard box scores, I wanted to build a progressive visual narrative that systematically breaks down his playmaking architecture through three expanding layers:
+1. **How much territory it gained** down the pitch (longitudinal drive, ΔX)
+2. **How much closer to goal it moved the ball** (Euclidean distance reduction to the goal center at coordinates (120, 40))
 
-1. **The Network Layer** — A categorical volume breakdown tracking the exact distribution of Messi's passes to his teammates to expose his primary on-pitch passing synergies.
-2. **The Density Layer** — A 2D passing intensity map using Kernel Density Estimation to isolate the specific zones on the pitch where Messi actively releases his passes and triggers the team's progression framework.
-3. **The Geometric Layer** — Leveraging my mathematical background to map the exact spatial vectors of all 67 completed passes he executed during the match, eventually building a custom heuristic model to filter out baseline possession volume and cleanly isolate his top 5 most threatening, line-breaking passes.
-
----
-
-## Project Architecture & Data Pipeline
-
-The pipeline is built around a vectorized matrix processing design to avoid slow, row-by-row iteration loops. Raw JSON/Dataframe feeds are ingested, cleaned, and piped through three specialized processing modules:
-
-```text
-  [ Raw Coordinates ] ➔ Ingestion & Coordinate Correction
-           │
-           ▼
-  [ Spatial Transform Engine ] ➔ Vector Displacements & L2 Euclidean Norms
-           │
-           ▼
-  [ Heuristic Scoring Layer ] ➔ Continuous Value Allocation & Data Optimization
-           │
-           ├──➔ Data Layer 1: Vector Field Mapping (Matplotlib Engine)
-           ├──➔ Data Layer 2: 2D Spatial Density Modeling (Seaborn KDE Engine)
-           └──➔ Data Layer 3: Categorical Network Distribution (Aggregation Layer)
-```
+Combining these into a single progression score let me filter out routine possession recycling and isolate Messi's genuinely threatening passes.
 
 ---
 
-## Technical Specifications & Mathematical Framework
+## The Scoring Model
 
-Standard performance metrics often evaluate passing volume or basic linear progression (e.g., total forward distance). This project introduces a more rigorous tracking metric by evaluating passing vectors across two concurrent dimensions to calculate absolute value creation.
+For each completed pass:
 
-### 1. Longitudinal Drive ($\Delta X$)
+**Longitudinal Drive:**
+$$\Delta X = end_x - start_x$$
 
-Measures pure territory gained down the length of the pitch, establishing the baseline linear verticality of the distribution.
+**Distance to Goal (before and after):**
+$$\text{Initial Distance} = \sqrt{(120 - start_x)^2 + (40 - start_y)^2}$$
+$$\text{Terminal Distance} = \sqrt{(120 - end_x)^2 + (40 - end_y)^2}$$
 
-$$\Delta X = \text{end}_x - \text{start}_x$$
-
-### 2. Target Convergence ($\Delta \text{Mainpoint}$)
-
-Calculates the direct minimization of Euclidean distance to the absolute high-value center of the opponent's goal mouth, defined as our structural "danger zone" at coordinate boundaries $(120, 40)$. This ensures wide, low-value perimeter recycling is mathematically separated from high-value dangerous penetration.
-
-Using the $L_2$ norm:
-
-$$\text{Initial Distance} = \sqrt{(120 - \text{start}_x)^2 + (40 - \text{start}_y)^2}$$
-
-$$\text{Terminal Distance} = \sqrt{(120 - \text{end}_x)^2 + (40 - \text{end}_y)^2}$$
-
-### 3. Absolute Target Drop
-
+**Absolute Drop:**
 $$\text{Absolute Drop} = \text{Initial Distance} - \text{Terminal Distance}$$
 
-### 4. Synthesized Heuristic Model (Composite Progression Score)
+**Final Progression Score:**
+$$\text{Score} = \Delta X + \text{Absolute Drop}$$
 
-To reward distributions that seamlessly blend forward penetration with dangerous, central vertical localization toward the danger zone, a final continuous evaluation heuristic was synthesized:
-
-$$\text{Progression Score} = \Delta X + \text{Absolute Drop}$$
-
-### 5. Score Distribution & Bounds
-
-To contextualize the heuristic, the Progression Score was evaluated against its theoretical and observed ranges across the dataset.
-
-**Deriving the Theoretical Ceiling**
-
-The maximum possible score occurs for a pass struck from the team's own back corner, (0, 0), landing exactly on the center of the opponent's goal, (120, 40):
-
-$$\Delta X = 120 - 0 = 120$$
-
-$$\text{Initial Distance} = \sqrt{(120-0)^2 + (40-0)^2} = \sqrt{16000} \approx 126.49$$
-
-$$\text{Terminal Distance} = \sqrt{(120-120)^2 + (40-40)^2} = 0$$
-
-$$\text{Absolute Drop} = 126.49 - 0 = 126.49$$
-
-$$\text{Progression Score} = 120 + 126.49 \approx 246.49$$
-
-**Observed Range**
-
-* **Theoretical Ceiling:** ≈246.49 — the absolute maximum derived above.
-* **Match Average:** 6.54 — the mean Progression Score across all 67 completed passes, representing Messi's typical distribution.
-* **Peak Action (Row ID 16):** 82.54 — roughly **12.6x** the match average and ≈33% of the theoretical ceiling, confirming this pass as a genuine statistical outlier rather than an arbitrary top-pick.
-
-This framing demonstrates that the top 5 isolated vectors weren't selected by eye, but represent passes that significantly exceeded Messi's baseline distribution profile for that match.
+### Score Context
+- **Theoretical ceiling:** ~246.49 (a pass from (0,0) landing exactly on (120,40))
+- **Match average:** 6.54 across all 67 completed passes
+- **Top pass (Row ID 16):** 82.54 — about 12.6x the match average, confirming it as a genuine outlier rather than an arbitrary pick
 
 ---
 
-## Visual Analytics Breakdown
+## Visualizations
 
-To isolate and validate Lionel Messi's creative output, the analysis pipeline constructed three distinct analytical views:
+Three analytical views were built to break down Messi's passing:
 
-### 1. Messi's Distribution Hub (Network Recipient Volume)
+**1. Recipient Volume Chart**
+A bar chart showing how frequently Messi passed to each teammate. Dani Alves came out as the primary outlet, which lines up with Barcelona's right-side overload pattern that season.
 
-A categorical volume chart breaking down pass completion frequency by recipient. This layer adds vital team-network context, mapping how his progressive spatial optimization directly fed into specific teammates within the tactical system.
+![Distribution Hub](assets/03_distribution_hub.png)
 
-### 2. Passing Intensity Map (Spatial Density)
+**2. Passing Intensity Heatmap (KDE)**
+A 2D kernel density estimate showing where on the pitch Messi was releasing passes most frequently. The right half-space and final third dominate.
 
-A two-dimensional Kernel Density Estimate (KDE) heatmap mapping Messi's high-frequency operational hotspots. This heat profile visually validates his heavy reliance on the right half-space and central final-third channels to anchor the team's progression.
+![Passing Intensity Map](assets/02_passing_intensity_map.png)
 
-### 3. Spatial Vector Map (Heuristic Model)
+**3. Spatial Vector Map**
+All 67 completed passes plotted as vectors on a pitch. The top 5 scoring passes are highlighted in orange — everything else is faded. This makes the game-breaking passes immediately visible without any subjectivity.
 
-The culmination of the project's custom heuristic scoring engine (ΔX + Absolute Drop). By fading the 67 completed baseline distributions to a lower opacity (alpha=0.45) and superimposing the top 5 highest-scoring vectors in high-contrast orange with sharp white borders (zorder=5), the exact game-breaking passing channels are cleanly isolated.
+![Passing Vector Map](assets/01_passing_vector_map.png)
 
----
-
-## Production Takeaways & Data Insights
-
-### 1. Tactical Network Synergy (Recipient Volume Analysis)
-
-* **The Primary Outlet:** The categorical distribution hub identifies Dani Alves as Messi's most frequent passing outlet during this match. This data-driven visualization exposes the core tactical mechanism of that 2014/15 La Liga season: high-frequency, short-range combinations on the right wing to unbalance the opposition block before executing a high-value progressive switch.
-* **Systemic Distribution:** Tracking the drop-off in volume across recipients illustrates how Messi effectively balanced recycling possession to the midfield line (Rakitic and Busquets) with explosive, targeted final-third entries to his frontline partners (Neymar and Suárez).
-
-### 2. Operational Dominance (Intensity Heatmap Analysis)
-
-* **Right Half-Space Anchoring:** The 2D Kernel Density Estimate (KDE) profile demonstrates that while Messi's terminal passing targets were highly centralized, his primary engine room for possession recycling and distribution creation was heavily anchored in the right half-space and final-third channels.
-
-### 3. Geometric Peak Efficiency (Vector Map Analysis)
-
-* **Peak Action (Row ID 16):** The pipeline's heuristic identified a definitive masterstroke, yielding a massive `progression_score` of 82.54 ($\Delta X = 44.3\text{m}$, $\text{Absolute Drop} = 38.2\text{m}$). This vector maps a staggering half-field diagonal line-breaker that completely bypassed Villarreal's defensive shape.
-* **Inward Funneling over Boundary Isolation:** The scoring metric successfully penalized low-value, vertical boundary-line launches while elevating cross-body, zone-piercing paths targeting the optimal 18-yard box central channels.
 
 ---
 
-## Installation, Environment Setup & Reproducibility
+## Key Finding
 
-To replicate this pipeline locally, ensure you have Python 3.10+ installed along with the required analytical dependencies.
+The highest scoring pass (score: 82.54) was a half-field diagonal that bypassed Villarreal's defensive shape entirely — ΔX of 44.3m and a distance drop of 38.2m toward goal. The model flagged it without any manual selection, which validated that the scoring approach was working as intended.
 
-### 1. Clone the Environment
+---
 
-git clone https://github.com/YOUR_USERNAME/messi_spatial_passing_optimization.git
+## Tech Stack
+
+- **Python 3.10+**
+- **Pandas** — data cleaning and feature engineering
+- **NumPy** — vectorized distance calculations
+- **Matplotlib** — vector field and pitch visualization
+- **Seaborn** — KDE heatmap
+- **Data:** StatsBomb Open Data
+
+---
+
+## How to Run
+
+```bash
+git clone https://github.com/Osaka17/messi_spatial_passing_optimization.git
 cd messi_spatial_passing_optimization
-
-### 2. Initialize Dependency Management
-
-It is strongly recommended to use a virtual environment to avoid version conflicts:
-
-python -m venv venv
-source venv/bin/activate (on Windows use: venv\Scripts\activate)
-
-### 3. Install Package Layer
-
-Install the verified environment configuration framework using pip:
-
 pip install pandas numpy matplotlib seaborn
-
-### 4. Execution
-
-Launch your local Jupyter interface to execute the vectorized arrays:
-
 jupyter notebook messi.ipynb
-
----
-
-## Tech Stack & Data Engineering Paradigms
-
-* **Core Languages:** Python (3.10+)
-* **Matrix Analytics:** Pandas (Vectorized Dataframe Transformations), NumPy (Fast Array Metrics)
-* **Visualization Ingestion:** Matplotlib (Custom Vector Field Engineering), Seaborn (Kernel Density Estimation Modeling)
-* **Data Paradigms:** Continuous Spatial Analytics, Geometric Heuristic Modeling, Geometric Layering Stacking (`zorder` control)
+```
