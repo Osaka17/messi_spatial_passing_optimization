@@ -23,6 +23,7 @@ For each completed pass:
 $$\Delta X = end_x - start_x$$
 
 **Distance to Goal (before and after):**
+
 $$\text{Initial Distance} = \sqrt{(120 - start_x)^2 + (40 - start_y)^2}$$
 $$\text{Terminal Distance} = \sqrt{(120 - end_x)^2 + (40 - end_y)^2}$$
 
