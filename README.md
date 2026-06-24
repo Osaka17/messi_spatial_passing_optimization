@@ -1,4 +1,4 @@
-# La Liga Passing Efficiency — Spatial Analysis Pipeline
+# Quantifying Pass Threat — A Spatial Scoring Model for Lionel Messi's Progressions
 
 Analyzing Lionel Messi's passing during Barcelona vs Villarreal (2014/15 La Liga) using StatsBomb open data. The goal was to go beyond basic pass counts and build a scoring system that identifies which passes actually threatened the opponent's goal.
 
