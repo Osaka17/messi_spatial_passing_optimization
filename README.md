@@ -1,6 +1,6 @@
 # Quantifying Pass Threat — A Spatial Scoring Model for Lionel Messi's Progressions
 
-**My first end-to-end data analysis project**, built from raw data ingestion through to final visualization. The idea came from years of playing Football Manager — I wanted to understand how analysts actually translate match tracking data into the kind of tactical insights the game simulates. Messi vs. Villarreal 2014/15 felt like the right match to reverse engineer.
+**My first end-to-end data analysis project**, built from raw data ingestion through to final visualization. The idea came from years of playing Football Manager, I wanted to understand how analysts actually translate match tracking data into the kind of tactical insights the game simulates. Messi vs. Villarreal 2014/15 felt like the right match to reverse engineer.
 
 Analyzing Lionel Messi's passing during Barcelona vs Villarreal (2014/15 La Liga) using StatsBomb open data. The goal was to go beyond basic pass counts and build a scoring system that identifies which passes actually threatened the opponent's goal.
 
